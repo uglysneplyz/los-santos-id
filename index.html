@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a1017" />
+  <title>Los Santos ID — конструктор игровой карты</title>
+  <style>
+    :root {
+      --ink: #14212b;
+      --muted: #768493;
+      --brand: #5fbdab;
+      --dark: #0a1017;
+      --pale1: #edeeaa;
+      --pale2: #c4e2c8;
+      --pale3: #8ac8d8;
+      --glass: rgba(255,255,255,.52);
+      --page: #0b111a;
+      --border: rgba(255,255,255,.10);
+      font-synthesis: none;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html {scroll-behavior:smooth;}
+    body { margin:0; min-height:100vh; color:#f7f8fa; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; background:linear-gradient(135deg,#dde8b8 0%, #c9e0c6 45%, #8fc7d7 100%); overflow-x:hidden; }
+    button,input,select { font:inherit; }
+    button {cursor:pointer;}
+    button:focus-visible,input:focus-visible,select:focus-visible {outline:3px solid #79d9bd;outline-offset:3px;}
+    ::selection {background:#a4e9c6;color:#18222c;}
+    .app {min-height:100vh; isolation:isolate; position:relative; padding-bottom:104px;}
+    .app::before {content:"";position:fixed;inset:-20%;pointer-events:none;z-index:-2;background:radial-gradient(circle at 13% 11%,rgba(142,200,184,.20),transparent 32%),radial-gradient(circle at 93% 85%,rgba(125,171,224,.17),transparent 34%);filter:blur(22px);}
+    .noise {position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.13;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.20'/%3E%3C/svg%3E");}
+    .topbar {display:none;}
+    .brand {display:flex;align-items:center;gap:13px;text-decoration:none;color:white;}
+    .mark {height:42px;width:42px;border-radius:14px;display:grid;place-items:center;color:#10191d;font-size:14px;font-weight:950;letter-spacing:-2px;background:linear-gradient(135deg,#e3fcc7,#79c9ba);box-shadow:0 4px 28px rgba(129,220,190,.22);}
+    .brand-name {font-weight:750;letter-spacing:-.8px;font-size:17px;line-height:1;}
+    .brand-sub {font-size:10px;letter-spacing:2.25px;color:#8d9da9;margin-top:6px;font-weight:750;}
+    .top-right {display:flex;align-items:center;gap:18px;}
+    .online {display:flex;align-items:center;gap:9px;color:#a1adba;font-size:12px;white-space:nowrap;}
+    .online span {height:7px;width:7px;border-radius:50%;background:#8de0bc;box-shadow:0 0 12px #8de0bc;}
+    .top-action {border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;padding:10px 14px;border-radius:12px;font-size:12px;font-weight:650;transition:.2s;}
+    .top-action:hover {background:rgba(255,255,255,.12);}
+    .layout {max-width:1240px;margin:0 auto;padding:20px 35px 0;display:grid;grid-template-columns:minmax(340px,1fr) minmax(370px,508px);gap:45px;align-items:center;}
+    .sidebar {align-self:start;padding-top:37px;}
+    .eyebrow {text-transform:uppercase;font-size:11px;letter-spacing:2.3px;font-weight:850;color:#8ce0be;display:flex;align-items:center;gap:12px;}
+    .eyebrow::before {content:"";display:block;height:1px;width:26px;background:#91dabc;}
+    h1 {font-size:clamp(41px,5.1vw,65px);line-height:1.03;letter-spacing:-3.4px;font-weight:780;margin:20px 0 16px;max-width:610px;}
+    h1 em {font-style:normal;background:linear-gradient(98deg,#e2f4bb,#80cfbc);background-clip:text;-webkit-background-clip:text;color:transparent;}
+    .intro {color:#9faeba;font-size:15px;line-height:1.7;max-width:460px;margin-bottom:27px;}
+    .intro strong {color:#f2f7f6;font-weight:550;}
+    .edit-panel {border:1px solid var(--border);background:linear-gradient(135deg,rgba(255,255,255,.075),rgba(255,255,255,.025));box-shadow:0 18px 70px rgba(0,0,0,.17);border-radius:23px;padding:24px;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);max-width:510px;}
+    .panel-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;}
+    .panel-heading h2 {margin:0;font-size:17px;letter-spacing:-.4px;font-weight:760;}
+    .soft-badge {font-size:10px;font-weight:780;color:#b1decf;padding:7px 9px;border-radius:8px;background:rgba(108,212,171,.10);border:1px solid rgba(145,222,194,.15);letter-spacing:.5px;white-space:nowrap;}
+    .field {display:flex;flex-direction:column;gap:8px;min-width:0;}
+    .field label {font-size:12px;font-weight:600;color:#a7b5be;}
+    .field input, .field select {width:100%;height:47px;padding:0 13px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:#19232e;color:#f6f9fb;outline:none;transition:.2s;min-width:0;color-scheme:dark;}
+    .field input:hover {border-color:rgba(255,255,255,.23);}
+    .field input:focus {border-color:#88cdb7;box-shadow:0 0 0 3px rgba(131,212,188,.09);}
+    .grid-two {display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+    .field-stack {display:grid;gap:15px;}
+    .photo-tools {display:grid;grid-template-columns:59px 1fr;align-items:center;gap:13px;background:rgba(255,255,255,.035);border:1px dashed rgba(255,255,255,.13);border-radius:12px;padding:10px;}
+    .photo-mini {width:59px;height:61px;border-radius:8px;background:#d7e7da;object-fit:cover;display:block;}
+    .file-actions {display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+    .mini-button {border:1px solid rgba(255,255,255,.17);background:rgba(255,255,255,.10);color:#f8faf9;border-radius:9px;padding:9px 12px;font-size:12px;font-weight:650;transition:.18s;}
+    .mini-button:hover {background:rgba(255,255,255,.16);}
+    .mini-button.subtle {color:#b1c0c9;background:transparent;}
+    .hint {color:#748593;font-size:11px;line-height:1.4;margin-top:6px;}
+    .panel-section {margin:20px 0 13px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+    .panel-section strong {font-size:12px;font-weight:700;color:#dae6e6;}
+    .panel-section span {font-size:11px;color:#768997;}
+    .swatches {display:flex;gap:10px;align-items:center;}
+    .swatch {width:34px;height:34px;border-radius:10px;border:2px solid transparent;box-shadow:inset 0 0 0 2px rgba(255,255,255,.16);transition:transform .2s;}
+    .swatch:hover {transform:translateY(-2px);}
+    .swatch.selected {outline:2px solid #e7f5ef;outline-offset:3px;}
+    .swatch[data-palette="lagoon"] {background:linear-gradient(125deg,#edeeaa,#83c9d8);}
+    .swatch[data-palette="sunset"] {background:linear-gradient(125deg,#edc7be,#f9dcba 60%,#a9c9ee);}
+    .swatch[data-palette="violet"] {background:linear-gradient(125deg,#d6c4f4,#efc7da 55%,#a8d3f3);}
+    .signature-preview {display:flex;align-items:center;justify-content:space-between;min-height:68px;border:1px solid rgba(255,255,255,.12);border-radius:11px;background:#d8e9dc;padding:7px 9px 7px 17px;gap:8px;}
+    .signature-preview svg {height:47px;width:200px;max-width:68%;}
+    .generate-sign {height:35px;border:0;background:#19352f;color:#dbf6e6;padding:0 12px;white-space:nowrap;border-radius:8px;font-size:12px;font-weight:720;}
+    .buttons {display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px;}
+    .button {border:1px solid rgba(255,255,255,.13);border-radius:12px;padding:15px 12px;font-weight:750;font-size:13px;display:flex;align-items:center;justify-content:center;gap:9px;transition:transform .2s,background .2s;}
+    .button:hover {transform:translateY(-2px);}
+    .button-primary {color:#132121;background:linear-gradient(120deg,#e3f3bd,#84d4b9);border-color:transparent;}
+    .button-secondary {color:#e1e9ec;background:rgba(255,255,255,.065);}
+    .safe-note {display:flex;align-items:center;gap:9px;color:#788d96;margin:15px 2px 0;font-size:11px;line-height:1.5;}
+    .safe-note svg {flex-shrink:0;}
+    .preview-column {width:100%;max-width:508px;margin:auto;}
+    .preview-label {display:flex;align-items:center;justify-content:space-between;padding:0 6px 11px;color:#9cabba;letter-spacing:2px;text-transform:uppercase;font-size:10px;font-weight:800;}
+    .preview-label .right {font-size:10px;letter-spacing:.7px;color:#758695;display:flex;align-items:center;gap:6px;}
+    .preview-label .right span {background:#87d7b1;width:5px;height:5px;border-radius:50%;display:block;}
+    .preview-stage {width:100%;padding:34px 23px 26px;min-height:654px;position:relative;border-radius:31px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;background:radial-gradient(ellipse at 17% 19%,var(--pale1),transparent 61%),radial-gradient(ellipse at 88% 18%,var(--pale3),transparent 58%),radial-gradient(ellipse at 5% 88%,#a9dbbd,transparent 55%),radial-gradient(ellipse at 92% 92%,#9ad8d7,transparent 54%),var(--pale2);box-shadow:0 28px 80px rgba(0,0,0,.12);transition:background .45s;}
+    [data-palette="sunset"] {--pale1:#efbdbc;--pale2:#f2d6cc;--pale3:#bed0ef;}
+    [data-palette="violet"] {--pale1:#d7bcef;--pale2:#ecc7db;--pale3:#9fc9ed;}
+    .stage-orb {position:absolute;border-radius:50%;filter:blur(22px);pointer-events:none;opacity:.38;}
+    .stage-orb.first {width:210px;height:210px;background:#fff8d7;right:-120px;bottom:-80px;}
+    .stage-orb.second {width:160px;height:160px;background:#eea7af;left:-90px;top:8%;}
+    .doc-card {width:100%;max-width:425px;height:550px;border-radius:27px;position:relative;overflow:hidden;color:#111d1d;background:rgba(255,255,255,.58);box-shadow:0 23px 45px rgba(73,113,124,.08),inset 0 0 0 1px rgba(255,255,255,.18);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);display:flex;flex-direction:column;transition:transform .25s;}
+    .doc-card:hover {transform:translateY(-3px);}
+    .card-body {padding:24px 25px 0;flex:1;position:relative;z-index:2;}
+    .card-overline {display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:9px;font-weight:860;letter-spacing:1.75px;opacity:.59;}
+    .ls-seal {width:30px;height:30px;display:grid;place-items:center;border-radius:50%;border:1.5px solid rgba(15,54,46,.63);font-size:10px;letter-spacing:-.6px;flex:none;}
+    .doc-title {font-size:clamp(28px,3.1vw,33px);font-weight:640;line-height:1.02;letter-spacing:-1.55px;margin:20px 0 25px;max-width:305px;}
+    .doc-columns {display:grid;grid-template-columns: minmax(120px, 1.02fr) minmax(132px, .98fr);gap:19px;}
+    .portrait {width:100%;height:225px;object-fit:cover;object-position:center;display:block;background:#d4e0d8;border:1px solid rgba(60,88,85,.13);border-radius:17px;}
+    .id-right {display:flex;flex-direction:column;align-items:flex-start;gap:22px;padding-top:4px;min-width:0;}
+    .info-group {max-width:100%;min-width:0;}
+    .info-label {font-size:15px;font-weight:570;line-height:1.35;letter-spacing:-.5px;}
+    .info-value {font-size:17px;font-weight:690;line-height:1.3;letter-spacing:-.4px;margin-top:7px;overflow-wrap:anywhere;}
+    .signature-card {margin-top:-4px;display:flex;align-items:center;height:67px;width:100%;}
+    .signature-card svg {width:152px;max-width:100%;height:67px;opacity:.89;}
+    .issued-strip {height:30px;margin-top:15px;background:rgba(98,206,159,.55);display:flex;align-items:center;white-space:nowrap;overflow:hidden;position:relative;font-size:10px;color:#192820;font-weight:720;letter-spacing:1.2px;}
+    .ticker {display:inline-flex;animation:ticker 16s linear infinite;gap:35px;min-width:max-content;padding-left:15px;}
+    .ticker span {white-space:nowrap;}
+    @keyframes ticker {to {transform:translateX(-50%);}}
+    .card-footer {height:105px;padding:15px 25px 18px;position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+    .footer-name {font-size:24px;letter-spacing:-1.1px;line-height:1.07;font-weight:700;max-width:265px;overflow-wrap:anywhere;max-height:56px;overflow:hidden;}
+    .footer-sub {font-size:10px;text-transform:uppercase;letter-spacing:1.35px;font-weight:770;margin-top:7px;opacity:.55;}
+    .dots-btn {border:none;border-radius:50%;background:#121c1a;color:#fff;width:39px;height:39px;font-size:25px;letter-spacing:1px;display:grid;place-items:center;line-height:0;flex:none;}
+    .watermark {position:absolute;z-index:1;top:53%;left:-22%;width:144%;text-align:center;transform:rotate(-29deg);font-size:37px;letter-spacing:7px;font-weight:950;line-height:1.9;color:rgba(14,57,48,.075);pointer-events:none;user-select:none;}
+    .demo-pill {position:absolute;bottom:132px;left:25px;z-index:2;font-size:9px;letter-spacing:1px;font-weight:900;text-transform:uppercase;border:1px solid rgba(19,57,44,.26);padding:5px 8px;border-radius:6px;background:rgba(240,254,244,.30);}
+    .pager {display:flex;justify-content:center;gap:9px;padding-top:22px;}
+    .pager i {height:7px;width:7px;border-radius:50%;background:rgba(255,255,255,.42);}
+    .pager i.active {background:#fff;width:20px;border-radius:8px;}
+    .preview-footnote {text-align:center;font-size:11px;color:#5b726e;margin-top:15px;font-weight:600;}
+    .bottom-nav {position:fixed;bottom:0;left:0;right:0;z-index:22;min-height:80px;padding:12px max(24px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));display:none;justify-content:space-around;background:#070a0b;border-top:1px solid rgba(255,255,255,.06);}
+    .nav-item {display:flex;flex-direction:column;align-items:center;gap:7px;background:none;border:0;color:#f5f6f6;font-size:11px;font-weight:580;min-width:57px;opacity:.80;padding:0;}
+    .nav-item svg {width:25px;height:25px;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+    .nav-item.current {opacity:1;}
+    .nav-item.current svg {background:#f2fcf5;color:#141d19;border-radius:7px;padding:3px;stroke-width:2.1;}
+    .mobile-actions {display:none !important;}
+    .mobile-header {display:none;}
+    .sheet-backdrop {position:fixed;inset:0;background:rgba(0,0,0,.66);z-index:29;opacity:0;pointer-events:none;transition:opacity .24s;}
+    .sheet-backdrop.open {opacity:1;pointer-events:auto;}
+    .mobile-sheet {position:fixed;z-index:30;bottom:0;left:0;right:0;background:#111b24;border:1px solid rgba(255,255,255,.12);border-radius:25px 25px 0 0;max-height:89dvh;overflow-y:auto;overscroll-behavior:contain;transform:translateY(105%);transition:transform .33s cubic-bezier(.16,1,.3,1);padding:11px 20px calc(25px + env(safe-area-inset-bottom));display:none;box-shadow:0 -20px 100px rgba(0,0,0,.4);}
+    .mobile-sheet.open {transform:translateY(0);}
+    .sheet-grab {width:40px;height:5px;background:#42515b;border-radius:6px;margin:1px auto 18px;}
+    .sheet-top {display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+    .sheet-top strong {font-size:19px;}
+    .close-sheet {border:0;background:#25323d;color:white;border-radius:50%;height:32px;width:32px;font-size:20px;}
+    .mobile-sheet .edit-panel {padding:0;border:0;box-shadow:none;background:transparent;backdrop-filter:none;max-width:none;}
+    .mobile-sheet .panel-heading {display:none;}
+    .toast {position:fixed;bottom:105px;left:50%;transform:translate(-50%,20px);z-index:50;background:#f0fcf4;color:#16251d;border-radius:12px;box-shadow:0 10px 36px rgba(0,0,0,.25);padding:12px 18px;font-size:12px;font-weight:720;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;max-width:min(90vw,400px);text-align:center;}
+    .toast.show {transform:translate(-50%,0);opacity:1;}
+    .modal {position:fixed;inset:0;z-index:31;display:none;align-items:center;justify-content:center;background:rgba(4,8,13,.72);padding:22px;}
+    .modal.open {display:flex;}
+    .modal-content {border:1px solid rgba(255,255,255,.15);border-radius:22px;background:#18252e;max-width:440px;width:100%;padding:29px;box-shadow:0 30px 100px rgba(0,0,0,.45);}
+    .modal-content h2 {font-size:22px;letter-spacing:-.5px;margin:0 0 15px;}
+    .modal-content p {color:#b3c2ca;font-size:14px;line-height:1.65;}
+    .modal-content .button {width:100%;margin-top:20px;}
+    .small-foot {display:none;}
+    @media(max-width:950px) {
+      .layout {gap:25px;padding:0 22px;grid-template-columns:minmax(300px,1fr) minmax(335px,.95fr);}
+      .topbar {padding:0 22px;}
+      h1 {font-size:44px;letter-spacing:-2px;}
+      .preview-stage {padding:20px 15px;min-height:620px;}
+      .doc-card {height:535px;}
+      .doc-title {font-size:27px;}
+      .card-body {padding:24px 20px 0;}
+      .card-footer {padding-left:20px;padding-right:20px;}
+      .portrait {height:211px;}
+      .doc-columns {gap:13px;}
+      .info-label {font-size:14px;}
+      .info-value {font-size:16px;}
+    }
+    @media(max-width:730px) {
+      body {background:#0a0c0f;}
+      .app {padding-bottom:calc(100px + env(safe-area-inset-bottom));}
+      .topbar {height:64px;padding:0 19px;}
+      .brand .mark {height:34px;width:34px;border-radius:11px;font-size:12px;}
+      .brand-name {font-size:14px;}
+      .brand-sub {font-size:8px;letter-spacing:1.5px;}
+      .top-right {display:none;}
+      .mobile-header {display:flex;align-items:center;gap:7px;font-size:11px;font-weight:650;color:#b2c6c7;letter-spacing:.3px;}
+      .mobile-header b {height:6px;width:6px;border-radius:50%;background:#9ef0bb;}
+      .sidebar {display:none;}
+      .layout {display:block;padding:0;max-width:500px;margin:0 auto;}
+      .preview-column {max-width:none;}
+      .preview-label {display:none;}
+      .preview-stage {border-radius:0;box-shadow:none;min-height:calc(100dvh - 92px - env(safe-area-inset-bottom));padding:52px 18px 18px;justify-content:flex-start;}
+      .doc-card {width:100%;max-width:400px;min-height:0;height:min(550px,calc(100dvh - 255px));height:clamp(405px,68dvh,550px);}
+      .doc-title {font-size:clamp(26px,7.15vw,33px);margin:17px 0 22px;}
+      .card-body {padding:21px 21px 0;}
+      .doc-columns {gap:14px;grid-template-columns:minmax(110px,1.05fr) minmax(113px,.95fr);}
+      .portrait {height:clamp(170px,28dvh,225px);}
+      .id-right {gap:17px;}
+      .info-label {font-size:clamp(13px,3.6vw,15px);}
+      .info-value {font-size:clamp(15px,4.3vw,18px);}
+      .signature-card {height:50px;}
+      .signature-card svg {height:51px;}
+      .card-footer {height:94px;padding:13px 21px 14px;}
+      .footer-name {font-size:clamp(18px,6.3vw,24px);}
+      .issued-strip {height:29px;margin-top:10px;}
+      .demo-pill {bottom:120px;left:21px;}
+      .watermark {font-size:clamp(23px,8vw,38px);}
+      .pager {padding-top:18px;}
+      .preview-footnote {display:none;}
+      .bottom-nav {display:flex;}
+      .mobile-actions {display:none !important;}
+      .floating-btn {border:0;color:#0d211d;background:#f1fdf0;box-shadow:0 8px 20px rgba(16,40,30,.18);height:44px;padding:0 17px;border-radius:25px;display:flex;align-items:center;gap:7px;font-weight:850;font-size:12px;}
+      .floating-btn.secondary {background:#1d332d;color:#fff;}
+      .mobile-sheet {display:block;}
+      .small-foot {display:none;}
+    }
+    @media(max-width:380px) {
+      .topbar {height:58px;}
+      .preview-stage {padding:40px 13px 20px;min-height:calc(100dvh - 90px - env(safe-area-inset-bottom));}
+      .doc-card {height:clamp(390px,69dvh,530px);}
+      .card-body {padding:18px 18px 0;}
+      .card-overline {font-size:8px;letter-spacing:1.3px;}
+      .doc-title {margin:12px 0 18px;font-size:26px;}
+      .portrait {height:clamp(160px,26dvh,208px);}
+      .id-right {gap:13px;}
+      .doc-columns {gap:11px;}
+      .card-footer {padding-left:18px;padding-right:18px;height:83px;}
+      .demo-pill {bottom:112px;left:18px;}
+      .nav-item {font-size:10px;min-width:50px;}
+      .floating-btn {height:41px;}
+      .preview-footnote {font-size:10px;}
+    }
+    @media (prefers-reduced-motion: reduce) {*,*::before,*::after {animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}}
+  </style>
+</head>
+<body>
+<div class="app" id="app" data-palette="lagoon">
+  <div class="noise"></div>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Los Santos ID, главная" id="brandHome">
+
+    </a>
+    <div class="mobile-header"><b></b> МАКЕТ ДЛЯ ПРОЄКТУ</div>
+    <div class="top-right"><div class="online"><span></span> Редактор работает локально</div><button class="top-action" id="aboutTop">О проекте ↗</button></div>
+  </header>
+
+  <main class="layout">
+    <section class="sidebar">
+      <div class="eyebrow">КОНСТРУКТОР ИГРОВОЙ КАРТОЧКИ</div>
+      <h1>Макет цифрової<br><em>фан-картки.</em></h1>
+      <p class="intro">Завантаж фото, зміни ім’я, дату та підпис. Макет зроблений для навчального або RP-проєкту та працює просто у браузері.</p>
+      <div id="editorDesktop"></div>
+    </section>
+
+    <section class="preview-column" aria-label="Предпросмотр документа">
+      <div class="preview-label"><span>ПРЕДПРОСМОТР / LIVE</span><span class="right"><span></span> РЕДАКТИРУЕТСЯ В РЕАЛЬНОМ ВРЕМЕНИ</span></div>
+      <div class="preview-stage" id="previewStage">
+        <div class="stage-orb first"></div><div class="stage-orb second"></div>
+        <article class="doc-card" id="docCard" aria-label="">
+          <div class="card-body">
+            <div class="card-overline"><span>Паспорт громадянина України</span></div>
+            <div class="doc-title">Паспорт жителя<br>Лос-Сантоса</div>
+            <div class="doc-columns">
+              <img class="portrait" id="portrait" alt="Фото персонажа" />
+              <div class="id-right">
+                <div class="info-group"><div class="info-label">Дата<br>народження:</div><div class="info-value" id="displayBirth">18.07.2003</div></div>
+                <div class="info-group"><div class="info-label">Номер:</div><div class="info-value" id="displayNumber">41829073</div></div>
+                <div class="signature-card" id="cardSignature"></div>
+              </div>
+            </div>
+          </div>
+          <div class="watermark" aria-hidden="true">дія<br></div>
+          <div class="issued-strip"><div class="ticker"><span id="stripText1">ОНОВЛЕНО • ЛОС-САНТОС • ФАН-КАРТКА • НЕ ДОКУМЕНТ</span><span id="stripText2">ОНОВЛЕНО • ЛОС-САНТОС • ФАН-КАРТКА • НЕ ДОКУМЕНТ</span></div></div>
+          <div class="card-footer"><div><div class="footer-name" id="displayName">Алекс Морган</div><div class="footer-sub"></div></div><button class="dots-btn" id="cardDots" aria-label="Редактировать карту">···</button></div>
+        </article>
+        <div class="pager" aria-label="Карточка 1 из 5"><i class="active"></i><i></i><i></i><i></i><i></i></div>
+      </div>
+    </section>
+  </main>
+  <div class="small-foot">© 2026 LOS SANTOS ID STUDIO · FAN-MADE CONCEPT · НЕ ЯВЛЯЕТСЯ УДОСТОВЕРЕНИЕМ ЛИЧНОСТИ</div>
+
+  <nav class="bottom-nav" aria-label="Меню приложения">
+    <button class="nav-item" id="navOverview" aria-label="Стрічка"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M7 7h10M7 11h10M7 15h7"/></svg><span>Стрічка</span></button>
+    <button class="nav-item current" id="navCard" aria-label="Документи"><svg viewBox="0 0 24 24"><rect x="3" y="2" width="18" height="20" rx="3"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span>Документи</span></button>
+    <button class="nav-item" id="navEdit" aria-label="LS AI"><svg viewBox="0 0 24 24"><path d="M12 5l1.7 4.3L18 11l-4.3 1.7L12 17l-1.7-4.3L6 11l4.3-1.7L12 5Z"/></svg><span>Дія.AI</span></button>
+    <button class="nav-item" id="navSave" aria-label="Сервіси"><svg viewBox="0 0 24 24"><path d="M12 4v6M12 14v6M4 12h6M14 12h6"/><path d="M8 8l2 2M14 14l2 2M16 8l-2 2M10 14l-2 2"/></svg><span>Сервіси</span></button>
+    <button class="nav-item" id="navAbout" aria-label="Меню"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.2" r="3.1"/><path d="M5.5 19c1.7-3.4 4.1-5.1 6.5-5.1s4.8 1.7 6.5 5.1"/></svg><span>Меню</span></button>
+  </nav>
+  <div class="sheet-backdrop" id="sheetBackdrop"></div>
+  <div class="mobile-sheet" id="mobileSheet" role="dialog" aria-modal="true" aria-label="Редактирование карты">
+    <div class="sheet-grab"></div><div class="sheet-top"><strong>Налаштувати картку</strong><button class="close-sheet" id="closeSheet" aria-label="Закрыть">×</button></div>
+    <div id="editorMobile"></div>
+  </div>
+  <div class="toast" role="status" aria-live="polite" id="toast"></div>
+  <div class="modal" id="aboutModal" role="dialog" aria-modal="true" aria-label="О проекте"><div class="modal-content"><h2>Los Santos ID Studio</h2><p>Це творчий конструктор <strong>вигаданої фан-картки</strong> у стилі цифрового гаманця. Він не пов’язаний з офіційними державними застосунками чи справжніми посвідченнями особи.</p><p>Фото і дані не надсилаються на сервер. Вони зберігаються лише у браузері на твоєму пристрої. Завантажене зображення містить позначку «ЗРАЗОК».</p><button class="button button-primary" id="closeModal">Добре</button></div></div>
+</div>
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const STORAGE = 'los-santos-id-studio-v1';
+  const PLACEHOLDER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><defs><linearGradient id="b" x2="1" y2="1"><stop stop-color="#e2eee0"/><stop offset="1" stop-color="#92baa9"/></linearGradient><radialGradient id="a"><stop stop-color="#c5e2d0"/><stop offset="1" stop-color="#70a18d"/></radialGradient></defs><rect width="400" height="500" fill="url(#b)"/><circle cx="300" cy="70" r="170" fill="#ffffff" opacity=".22"/><ellipse cx="202" cy="485" rx="180" ry="148" fill="#547e74"/><rect x="159" y="294" width="86" height="75" rx="30" fill="url(#a)"/><ellipse cx="201" cy="205" rx="99" ry="122" fill="url(#a)"/><path d="M105 206C86 92 157 50 223 63c68 8 99 76 83 160l-20-44-18-63c-49 43-123 41-163 90Z" fill="#42665d"/><circle cx="169" cy="217" r="5" fill="#496a60"/><circle cx="234" cy="217" r="5" fill="#496a60"/><path d="M175 268q26 20 53 0" stroke="#5f8c7c" fill="none" stroke-width="6" stroke-linecap="round"/></svg>`);
+  const defaults = { name:'Алекс Морган', birth:'2003-07-18', issued:'2026-10-18', number:'41829073', palette:'lagoon', image:'', signatureSeed:6291842 };
+  let state;
+  try {state = {...defaults, ...JSON.parse(localStorage.getItem(STORAGE)||'{}')};} catch(e) { state = {...defaults}; }
+  const editorHTML = () => `
+    <div class="edit-panel">
+      <div class="panel-heading"><h2>Налаштування картки</h2><span class="soft-badge">LIVE EDITOR</span></div>
+      <div class="field-stack">
+        <div class="field"><label for="inputName">Ім’я та прізвище</label><input id="inputName" data-field="name" type="text" maxlength="43" placeholder="Например, Алекс Морган" autocomplete="off" /></div>
+        <div class="grid-two">
+          <div class="field"><label for="inputBirth">Дата народження</label><input id="inputBirth" data-field="birth" type="date" min="1900-01-01" max="2100-12-31" /></div>
+          <div class="field"><label for="inputIssued">Дата оновлення</label><input id="inputIssued" data-field="issued" type="date" min="1900-01-01" max="2100-12-31" /></div>
+        </div>
+        <div class="field"><label>Фотографія</label><div class="photo-tools"><img class="photo-mini" data-photo-preview alt="Предпросмотр фото"/><div><div class="file-actions"><button type="button" class="mini-button" data-action="upload">↑ Загрузить фото</button><button type="button" class="mini-button subtle" data-action="resetPhoto">Убрать</button></div><div class="hint">JPG, PNG, WEBP · до 12 МБ</div></div></div><input type="file" data-upload accept="image/jpeg,image/png,image/webp,image/heic,image/heif" hidden /></div>
+      </div>
+      <div class="panel-section"><strong>Оформлення картки</strong><span>3 кольори</span></div>
+      <div class="swatches"><button type="button" class="swatch" data-palette="lagoon" title="Лагуна" aria-label="Цветовая тема Лагуна"></button><button type="button" class="swatch" data-palette="sunset" title="Закат" aria-label="Цветовая тема Закат"></button><button type="button" class="swatch" data-palette="violet" title="Неон" aria-label="Цветовая тема Неон"></button></div>
+      <div class="panel-section"><strong>Випадковий підпис</strong><span>Щоразу новий</span></div>
+      <div class="signature-preview"><div data-signature-mini></div><button class="generate-sign" data-action="signature">↻ Створити</button></div>
+      <div class="buttons"><button type="button" class="button button-secondary" data-action="number">↻ Новий номер</button><button type="button" class="button button-primary" data-action="save">↓ Зберегти PNG</button></div>
+      <div class="safe-note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 4 6v6c0 5 3 8 8 10 5-2 8-5 8-10V6l-8-4Z"/><path d="m9 12 2 2 4-4"/></svg> Все працює без інтернету та відправки даних. Це лише навчальний макет.</div>
+    </div>`;
+  $('editorDesktop').innerHTML = editorHTML();
+  $('editorMobile').innerHTML = editorHTML().replaceAll('id="inputName"','id="mobileInputName"').replaceAll('for="inputName"','for="mobileInputName"').replaceAll('id="inputBirth"','id="mobileInputBirth"').replaceAll('for="inputBirth"','for="mobileInputBirth"').replaceAll('id="inputIssued"','id="mobileInputIssued"').replaceAll('for="inputIssued"','for="mobileInputIssued"');
+  let signaturePaths = [];
+  const safe = text => String(text || '').trim();
+  const fmt = iso => /^(\d{4})-(\d\d)-(\d\d)$/.test(iso) ? iso.slice(8,10)+'.'+iso.slice(5,7)+'.'+iso.slice(0,4) : '—';
+  const persist = () => {try {localStorage.setItem(STORAGE, JSON.stringify(state));} catch(e) {notify('Фото слишком большое для памяти браузера — остальные поля работают');}};
+  const rng = (seed) => () => {seed |= 0;seed = seed + 0x6D2B79F5 | 0;let t = Math.imul(seed ^ seed>>>15,1|seed);t = t + Math.imul(t ^ t>>>7,61|t) ^ t;return ((t ^ t>>>14)>>>0)/4294967296;};
+  function buildSignature(seed) {
+    const r=rng(Number(seed)||13), paths=[];
+    const beginX=10+r()*8, baseY=69+r()*9;
+    let d=`M ${beginX.toFixed(1)} ${baseY.toFixed(1)} `;
+    let x=beginX;
+    const letters=7+Math.floor(r()*3);
+    for(let i=0;i<letters;i++) {
+      let w=23+r()*21, h=18+r()*33, curve=r()*20;
+      d+=`C ${(x+curve).toFixed(1)} ${(baseY-h).toFixed(1)}, ${(x+w*.43).toFixed(1)} ${(baseY+h*.8).toFixed(1)}, ${(x+w*.63).toFixed(1)} ${(baseY-h*.55).toFixed(1)} `;
+      d+=`S ${(x+w*.9).toFixed(1)} ${(baseY+r()*8-4).toFixed(1)}, ${(x+w).toFixed(1)} ${(baseY-2-r()*13).toFixed(1)} `;
+      x+=w;
+    }
+    paths.push(d);
+    const y=94+r()*7;
+    paths.push(`M ${(24+r()*14).toFixed(1)} ${y.toFixed(1)} Q ${(x*.50).toFixed(1)} ${(y-16-r()*9).toFixed(1)} ${(x+14).toFixed(1)} ${(y-9-r()*11).toFixed(1)}`);
+    if(r()>.37) paths.push(`M ${(40+r()*30).toFixed(1)} ${(42+r()*10).toFixed(1)} Q ${(15+r()*7).toFixed(1)} ${(11+r()*10).toFixed(1)} ${(80+r()*25).toFixed(1)} ${(18+r()*20).toFixed(1)}`);
+    return paths;
+  }
+  function signatureSvg(paths, aria=false) {return `<svg ${aria?'role="img" aria-label="Сгенерированная подпись"':'aria-hidden="true"'} viewBox="0 0 370 125" preserveAspectRatio="xMinYMid meet" xmlns="http://www.w3.org/2000/svg">${paths.map((p,i)=>`<path d="${p}" stroke="#203f39" fill="none" stroke-width="${i===0?2.4:1.65}" stroke-linecap="round" stroke-linejoin="round"/>`).join('')}</svg>`;}
+  function updateSignature() {signaturePaths=buildSignature(state.signatureSeed);$('cardSignature').innerHTML=signatureSvg(signaturePaths,true);document.querySelectorAll('[data-signature-mini]').forEach(el=>el.innerHTML=signatureSvg(signaturePaths));}
+  function syncEditors() {
+    document.querySelectorAll('[data-field]').forEach(el=>{if (document.activeElement!==el) el.value=state[el.dataset.field]||'';});
+    document.querySelectorAll('[data-photo-preview]').forEach(img=>{img.src=state.image||PLACEHOLDER;});
+    document.querySelectorAll('.swatch').forEach(el=>{el.classList.toggle('selected',el.dataset.palette===state.palette);el.setAttribute('aria-pressed', String(el.dataset.palette===state.palette));});
+  }
+  function render() {
+    $('displayName').textContent=safe(state.name)||'Без имени';
+    $('displayBirth').textContent=fmt(state.birth);
+    $('displayNumber').textContent=state.number;
+    $('portrait').src=state.image||PLACEHOLDER;
+    $('app').dataset.palette=state.palette;
+    $('stripText1').textContent=`Документ ${fmt(state.issued)}  оновлено о 13:43 | 17.10.2026`;
+    $('stripText2').textContent=`Документ ${fmt(state.issued)}  оновлено о 13:43 | 17.10.2026`;
+    syncEditors();
+  }
+  let toastTimeout;
+  function notify(message){let el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>el.classList.remove('show'),3200);}
+  function genNumber(){const vals=new Uint32Array(1);if(window.crypto && crypto.getRandomValues) crypto.getRandomValues(vals);else {vals[0]=Math.floor(Math.random()*1e8);}return String(vals[0]%100000000).padStart(8,'0');}
+  function randomSeed(){const buf=new Uint32Array(1);if(window.crypto&&crypto.getRandomValues)crypto.getRandomValues(buf);else buf[0]=Math.floor(Math.random()*4294967295);return buf[0]||1;}
+  function generateNewSignature(){state.signatureSeed=randomSeed();updateSignature();persist();notify('Новая подпись готова');}
+  function handlePhoto(file){
+    if(!file) return;
+    if(file.size>12*1024*1024) return notify('Выбери изображение не больше 12 МБ');
+    if(!file.type.startsWith('image/'))return notify('Нужен файл изображения');
+    const reader = new FileReader();
+    reader.onerror=()=>notify('Не удалось открыть фото');
+    reader.onload=()=>{
+      const img = new Image();
+      img.onload=()=>{
+        const c=document.createElement('canvas');const ratio=Math.min(1,900/Math.max(img.naturalWidth,img.naturalHeight));
+        c.width=Math.max(1,Math.round(img.naturalWidth*ratio));c.height=Math.max(1,Math.round(img.naturalHeight*ratio));
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        state.image=c.toDataURL('image/jpeg',.84);persist();render();notify('Фотография обновлена');
+      };
+      img.onerror=()=>notify('Браузер не смог прочитать фотографию. Попробуй JPG или PNG');
+      img.src=reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  document.addEventListener('input',e=>{
+    let el=e.target;if(!el.matches('[data-field]'))return;
+    state[el.dataset.field]=el.value;
+    persist();render();
+  });
+  document.addEventListener('change',e=>{if(e.target.matches('[data-upload]')){handlePhoto(e.target.files[0]);e.target.value='';}});
+  document.addEventListener('click',e=>{
+    const sw=e.target.closest('.swatch');
+    if(sw){state.palette=sw.dataset.palette;persist();render();return;}
+    const action=e.target.closest('[data-action]');
+    if(!action)return;
+    const key=action.dataset.action;
+    if(key==='upload') {action.closest('.field').querySelector('[data-upload]').click();}
+    if(key==='resetPhoto') {state.image='';persist();render();notify('Портрет сброшен');}
+    if(key==='signature')generateNewSignature();
+    if(key==='number'){state.number=genNumber();persist();render();notify('Номер карты обновлён');}
+    if(key==='save')exportPNG();
+  });
+  function openSheet(){ $('sheetBackdrop').classList.add('open');$('mobileSheet').classList.add('open');document.body.style.overflow='hidden';syncEditors(); }
+  function closeSheet(){ $('sheetBackdrop').classList.remove('open');$('mobileSheet').classList.remove('open');document.body.style.overflow=''; }
+  function openAbout(){closeSheet();$('aboutModal').classList.add('open');}
+  function closeAbout(){$('aboutModal').classList.remove('open');}
+  if ($('mobileEdit')) $('mobileEdit').addEventListener('click',openSheet);
+  if ($('mobileSave')) $('mobileSave').addEventListener('click',exportPNG);
+  $('cardDots').addEventListener('click',openSheet);
+  $('navEdit').addEventListener('click',openSheet);
+  $('navSave').addEventListener('click',exportPNG);
+  $('navAbout').addEventListener('click',openAbout);
+  $('navOverview').addEventListener('click',()=>{notify('Добро пожаловать в Лос-Сантос! Создай свою карту в редакторе.');});
+  $('navCard').addEventListener('click',()=>{closeSheet();window.scrollTo({top:0,behavior:'smooth'});});
+  $('brandHome').addEventListener('click',e=>{e.preventDefault();window.scrollTo({top:0,behavior:'smooth'});});
+  $('aboutTop').addEventListener('click',openAbout);
+  $('closeModal').addEventListener('click',closeAbout);
+  $('aboutModal').addEventListener('click',e=>{if(e.target===$('aboutModal'))closeAbout();});
+  $('closeSheet').addEventListener('click',closeSheet);
+  $('sheetBackdrop').addEventListener('click',closeSheet);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSheet();closeAbout();}});
+
+  // Export a faithful, high-resolution illustrated card without network libraries.
+  function roundRect(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function drawPhoto(ctx,img,x,y,w,h,r){ctx.save();roundRect(ctx,x,y,w,h,r);ctx.clip();const scale=Math.max(w/img.width,h/img.height);const ww=img.width*scale,hh=img.height*scale;ctx.drawImage(img,x+(w-ww)/2,y+(h-hh)/2,ww,hh);ctx.restore();}
+  function text(ctx,s,x,y,size,weight='#',color='#162623',font='Arial, sans-serif'){
+    ctx.fillStyle=color;ctx.font=`${weight==='#'?'600':weight} ${size}px ${font}`;ctx.fillText(s,x,y);
+  }
+  function drawFitText(ctx,str,x,y,maxWidth,size,minSize=31){let value=safe(str)||'Без имени';let s=size;for(;s>=minSize;s-=2){ctx.font=`bold ${s}px Arial, sans-serif`;if(ctx.measureText(value).width<=maxWidth)break;}ctx.fillStyle='#172d28';ctx.font=`bold ${Math.max(s,minSize)}px Arial, sans-serif`;if(ctx.measureText(value).width>maxWidth){const pieces=value.split(' ');if(pieces.length>1){let line='';let rest='';for(let i=0;i<pieces.length;i++){if(ctx.measureText((line+' '+pieces[i]).trim()).width<maxWidth||!line)line=(line+' '+pieces[i]).trim();else rest=(rest+' '+pieces[i]).trim();}ctx.fillText(line,x,y);if(rest)ctx.fillText(rest.slice(0,29),x,y+51);}else ctx.fillText(value.slice(0,22),x,y);}else ctx.fillText(value,x,y);}
+  function loadImage(src){return new Promise((resolve,reject)=>{let img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=src;});}
+  async function exportPNG(){
+    notify('Готовим PNG-карту…');
+    const W=1200,H=1600,c=document.createElement('canvas');c.width=W;c.height=H;
+    const ctx=c.getContext('2d');if(!ctx){notify('Экспорт не поддерживается браузером');return;}
+    const pal={lagoon:['#eceda9','#c6e5c7','#86c7d9'],sunset:['#eec0bd','#f3d6cb','#b6cdef'],violet:['#d6bcee','#efc4dc','#a3d1f3']}[state.palette]||['#eceda9','#c6e5c7','#86c7d9'];
+    const gradient=ctx.createLinearGradient(0,0,W,H);gradient.addColorStop(0,pal[0]);gradient.addColorStop(.52,pal[1]);gradient.addColorStop(1,pal[2]);ctx.fillStyle=gradient;ctx.fillRect(0,0,W,H);
+    const shade=ctx.createRadialGradient(160,170,20,160,170,920);shade.addColorStop(0,'#ffffff44');shade.addColorStop(1,'#ffffff00');ctx.fillStyle=shade;ctx.fillRect(0,0,W,H);
+    const x=67,y=65,w=1066,h=1470;
+    ctx.fillStyle='rgba(255,255,255,.63)';roundRect(ctx,x,y,w,h,66);ctx.fill();
+    text(ctx,'LOS SANTOS  ·  CITY ID',130,170,30,'bold','#3b695d');
+    ctx.strokeStyle='#2f6258';ctx.lineWidth=5;ctx.beginPath();ctx.arc(1053,147,45,0,Math.PI*2);ctx.stroke();text(ctx,'LS',1028,163,39,'bold','#27544a');
+    text(ctx,'Паспорт жителя',130,268,83,'600','#132824');text(ctx,'Лос-Сантоса',130,358,83,'600','#132824');
+    let pic;try {pic=await loadImage(state.image||PLACEHOLDER);}catch(e){pic=await loadImage(PLACEHOLDER);}
+    drawPhoto(ctx,pic,130,420,467,660,43);
+    text(ctx,'Дата народження:',650,469,44,'500');text(ctx,fmt(state.birth),650,536,51,'bold');
+    text(ctx,'Номер:',650,660,44,'500');text(ctx,state.number,650,723,48,'bold');
+    ctx.save();ctx.translate(635,768);ctx.scale(1.08,1.35);ctx.strokeStyle='#24453e';ctx.lineCap='round';ctx.lineJoin='round';signaturePaths.forEach((p,i)=>{ctx.lineWidth=i===0?2.8:2;ctx.stroke(new Path2D(p));});ctx.restore();
+    ctx.save();ctx.translate(1030,1080);ctx.rotate(-Math.PI/6);ctx.font='bold 93px Arial,sans-serif';ctx.textAlign='center';ctx.fillStyle='rgba(18,77,63,.10)';ctx.fillText('LOS SANTOS',-340,-260);ctx.fillText('DEMO',-340,-153);ctx.restore();
+    ctx.fillStyle='#67cda7';ctx.fillRect(67,1150,1066,78);
+    text(ctx,`ВЫДАНО ${fmt(state.issued)}   •   ВЫМЫШЛЕННЫЙ ДОКУМЕНТ   •   LOS SANTOS`,99,1200,28,'bold','#163128');
+    drawFitText(ctx,state.name,128,1340,770,67,39);
+    text(ctx,'',130,1404,29,'bold','#456b5e');
+    ctx.fillStyle='#e9f9ee';roundRect(ctx,625,1433,450,61,11);ctx.fill();
+    ctx.strokeStyle='#345d4a';ctx.lineWidth=2;roundRect(ctx,625,1433,450,61,11);ctx.stroke();
+    text(ctx,'ОБРАЗЕЦ · НЕ ДОКУМЕНТ',651,1473,24,'bold','#2f5f4d');
+    const link=document.createElement('a');link.download='Los-Santos-ID-Demo.png';link.href=c.toDataURL('image/png');document.body.appendChild(link);link.click();link.remove();
+    notify('PNG готов! Файл сохранён на устройство.');
+  }
+  updateSignature();render();
+})();
+</script>
+</body>
+</html>
